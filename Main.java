@@ -28,7 +28,14 @@ public class Main {
             System.out.println("4: Make Payment");
             System.out.println("5: View taxpayer tax summary");
             System.out.println("0: Exit");
-            choice = Integer.parseInt(scanner.nextLine());
+            
+            // --- UPDATED: Safe parsing of menu input via try-catch ---
+            try {
+                choice = Integer.parseInt(scanner.nextLine().trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Error: Please enter a valid menu number (0-5).");
+                continue;
+            }
 
             switch(choice) {
 
@@ -39,72 +46,107 @@ public class Main {
                 case 1:
                     System.out.println("Registering a taxpayer");
 
+                    // Check if maximum capacity is reached to be safe
+                    if (taxpayerCount >= taxPayers.length) {
+                        System.out.println("Error: Maximum taxpayer capacity reached.");
+                        break;
+                    }
+
+                    // --- UPDATED: Validate exactly 10 digits TIN & check duplicates with .equals() ---
                     // tin
                     String taxpayerTin = "";
-                    while (taxpayerTin.isEmpty()) {
-                        System.out.println("Enter a taypayer Tin");
+                    while (taxpayerTin.isEmpty() || taxpayerTin.length() != 10) {
+                        System.out.println("Enter a taxpayer Tin with 10 characters: ");
                         taxpayerTin = scanner.nextLine().trim();
                     }
                     boolean duplicateTin = false;
                     for (int i = 0; i < taxpayerCount; i++) {
-                        if (taxPayers[i].getTaxpayerTin() == taxpayerTin) {
+                        if (taxPayers[i].getTaxpayerTin().equals(taxpayerTin)) {
                             duplicateTin = true;
                             break;
                         }
                     }
                     if(duplicateTin) {
                         System.out.println("Rejection: Duplicate Taxpayer Tin.");
+                        taxpayerTin = "";
                         break;
                     }
 
                     // name
                     String taxpayerName = "";
                     while (taxpayerName.isEmpty()) {
-                        System.out.println("Enter a taypayer Name");
+                        System.out.println("Enter a taxpayer Name");
                         taxpayerName = scanner.nextLine().trim();
-                    }
-                    boolean duplicateName = false;
-                    for (int i = 0; i < taxpayerCount; i++) {
-                        if (taxPayers[i].getTaxpayerName() == taxpayerName) {
-                            duplicateTin = true;
-                            break;
+                        // to show the user that the name cannot be blank
+                        if (taxpayerName.isEmpty()) {
+                            System.out.println("Error: Name cannot be blank.");
                         }
-                    }
-                    if(duplicateName) {
-                        System.out.println("Rejection: Duplicate Taxpayer Name.");
-                        break;
                     }
 
                     // age
                     int taxPayerAge = 0;
                     while (taxPayerAge < 18) {
                         try {
-                            System.out.print("Enter Taxpayer Age (18): ");
+                            System.out.print("Enter Taxpayer Age (greater than 18): ");
                             taxPayerAge = Integer.parseInt(scanner.nextLine().trim());
+                            // to show the user that the age must be greater than 18
+                            if (taxPayerAge <= 18) {
+                                System.out.println("Error: Taxpayer age must be greater than 18.");
+                            }
                         } catch (NumberFormatException e) {
                             System.out.println("Please enter a valid number.");
                         }
                     }
 
-                    // phone
-                    String taxpayerPhone = "";
-                    while (taxpayerPhone.isEmpty() || taxpayerPhone.length() != 10) {
-                        try {
-                            System.out.print("Enter Customer phone number (18-100): ");
-                            taxpayerPhone = scanner.nextLine().trim();
-                        } catch (NumberFormatException e) {
-                            System.out.println("Please enter a valid number with 10 digits.");
-                        }
+                    // new way with a choice
+                    System.out.println("Do you want to provide phone and email? (1 for Yes, 2 for No)");
+                    int option = 0;
+                    try {
+                        option = Integer.parseInt(scanner.nextLine().trim());
+                    } catch (NumberFormatException e) {
+                        option = 2;
                     }
-                    
-                    // email
-                    String taxpayerEmail = "";
+
+                    if (option == 1) {
+                        // phone
+                        String taxpayerPhone = "";
+                        while (taxpayerPhone.isEmpty() || taxpayerPhone.length() != 10) {
+                            try {
+                                System.out.print("Enter Customer phone number (10 digits): ");
+                                taxpayerPhone = scanner.nextLine().trim();
+                            } catch (NumberFormatException e) {
+                                System.out.println("Please enter a valid number with 10 digits.");
+                            }
+                        }
+                        
+                        // email
+                        String taxpayerEmail = "";
                         while (!taxpayerEmail.contains("@") || !taxpayerEmail.contains(".")) {
                             System.out.print("Enter Customer TaxpataxpayerEmail: ");
                             taxpayerEmail = scanner.nextLine().trim();
+                            if (!taxpayerEmail.contains("@") || !taxpayerEmail.contains(".")) {
+                                System.out.println("Error: Please enter a valid email address.");
+                            }
                         }
+                        taxPayers[taxpayerCount++] = new TaxPayer(taxpayerTin, taxpayerName, taxPayerAge, taxpayerPhone, taxpayerEmail);
+                    } else {
+                        taxPayers[taxpayerCount++] = new TaxPayer(taxpayerTin, taxpayerName, taxPayerAge);
+                    }
 
-                    taxPayers[taxpayerCount++] = new TaxPayer(taxpayerTin, taxpayerName, taxPayerAge, taxpayerPhone, taxpayerEmail);
+                    // or gemini code (but has no validation for phone and email)
+                    
+                    // System.out.print("Enter Phone (leave blank for default): ");
+                    // String taxpayerPhone = scanner.nextLine().trim();
+
+                    // System.out.print("Enter Email (leave blank for default): ");
+                    // String taxpayerEmail = scanner.nextLine().trim();
+
+                    // if (taxpayerPhone.isEmpty() && taxpayerEmail.isEmpty()) {
+                    //     taxPayers[taxpayerCount++] = new TaxPayer(taxpayerTin, taxpayerName, taxPayerAge);
+                    // } else {
+                    //     taxPayers[taxpayerCount++] = new TaxPayer(taxpayerTin, taxpayerName, taxPayerAge, taxpayerPhone, taxpayerEmail);
+                    // }
+
                     System.out.println("Success: Taxpayer registered."); 
                     break;
 
@@ -119,7 +161,7 @@ public class Main {
                     }
                     boolean duplicateNumber = false;
                     for (int i = 0; i < taxAccountCount; i++) {
-                        if (taxAccounts[i].getTaxpayerTin() == taxAccountNumber) {
+                        if (taxAccounts[i].getTaxpayerTin().equals(taxAccountNumber)) {
                             duplicateNumber = true;
                             break;
                         }
@@ -165,7 +207,7 @@ public class Main {
                     }
                     boolean duplicateDeclarationId = false;
                     for (int i = 0; i < declarationCount; i++) {
-                        if (declarations[i].getDeclarationId() == declarationId) {
+                        if (declarations[i].getDeclarationId().equals(declarationId)) {
                             duplicateDeclarationId = true;
                             break;
                         }
@@ -211,7 +253,7 @@ public class Main {
                     }
                     boolean duplicatePaymentId = false;
                     for (int i = 0; i < paymentCount; i++) {
-                        if (payments[i].getPaymentId() == paymentId) {
+                        if (payments[i].getPaymentId().equals(paymentId)) {
                             duplicatePaymentId = true;
                             break;
                         }
