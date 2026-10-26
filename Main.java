@@ -58,6 +58,9 @@ public class Main {
                     while (taxpayerTin.isEmpty() || taxpayerTin.length() != 10) {
                         System.out.println("Enter a taxpayer Tin with 10 characters: ");
                         taxpayerTin = scanner.nextLine().trim();
+                        if (taxpayerTin.length() != 10) {
+                            System.out.println("Error: Taxpayer Tin must be exactly 10 characters.");
+                        }
                     }
                     boolean duplicateTin = false;
                     for (int i = 0; i < taxpayerCount; i++) {
@@ -134,7 +137,7 @@ public class Main {
                     }
 
                     // or gemini code (but has no validation for phone and email)
-                    
+
                     // System.out.print("Enter Phone (leave blank for default): ");
                     // String taxpayerPhone = scanner.nextLine().trim();
 
