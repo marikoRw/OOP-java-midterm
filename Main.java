@@ -117,6 +117,9 @@ public class Main {
                             try {
                                 System.out.print("Enter Customer phone number (10 digits): ");
                                 taxpayerPhone = scanner.nextLine().trim();
+                                if (taxpayerPhone.length() != 10) {
+                                    System.out.println("Error: Phone number must be exactly 10 digits.");
+                                }
                             } catch (NumberFormatException e) {
                                 System.out.println("Please enter a valid number with 10 digits.");
                             }
@@ -277,7 +280,7 @@ public class Main {
                     double paymentAmount = 0.0;
                     while (paymentAmount == 0) {
                         System.out.println("Enter a Payment amount");
-                        declarationAmount = Double.parseDouble(scanner.nextLine().trim());
+                        paymentAmount = Double.parseDouble(scanner.nextLine().trim());
                     }
 
                     // method
@@ -298,6 +301,9 @@ public class Main {
                     for (int i = 0; i < taxpayerCount; i++) {
                         System.out.println("TIN: " + taxPayers[i].getTaxpayerTin());
                         System.out.println("Name: " + taxPayers[i].getTaxpayerName());
+                        System.out.println("Age: " + taxPayers[i].getTaxpayerAge());
+                        System.out.println("Phone: " + taxPayers[i].getTaxpayerPhone());
+                        System.out.println("Email: " + taxPayers[i].getTaxpayerEmail());
                         System.out.println("--------------------------------");
                     }
 
