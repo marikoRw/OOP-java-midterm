@@ -190,7 +190,7 @@ public class Main {
                     // reftin
                     String taxAccountRefTin = "";
                     while (taxAccountRefTin.isEmpty()) {
-                        System.out.println("Enter a tayAccount Tin for linking");
+                        System.out.println("Enter a taxAccount Tin for linking");
                         taxAccountRefTin = scanner.nextLine().trim();
                         // to show the user that the tax account ref tin cannot be blank
                         if (taxAccountRefTin.isEmpty()) {
@@ -225,7 +225,7 @@ public class Main {
                     // type
                     String taxAccountType = "";
                     while (taxAccountType.isEmpty()) {
-                        System.out.println("Enter a tayAccount Account Type");
+                        System.out.println("Enter a taxAccount Type");
                         taxAccountType = scanner.nextLine().trim();
                         // ` to show the user that the tax account type cannot be blank
                         if (taxAccountType.isEmpty()) {
@@ -236,7 +236,7 @@ public class Main {
                     // status
                     String taxAccountStatus = "";
                     while (taxAccountStatus.isEmpty()) {
-                        System.out.println("Enter a tayAccount Account Status");
+                        System.out.println("Enter a taxAccount Status");
                         taxAccountStatus = scanner.nextLine().trim();
                         // to show the user that the tax account status cannot be blank
                         if (taxAccountStatus.isEmpty()) {
@@ -251,20 +251,30 @@ public class Main {
                 case 3:
                     System.out.println("Registering a declaration");
 
+                    // Check if maximum capacity is reached to be safe
+                    if (declarationCount >= declarations.length) {
+                        System.out.println("Error: Maximum declaration capacity reached.");
+                        break;
+                    }
+
                     // id
                     String declarationId = "";
                     while (declarationId.isEmpty()) {
                         System.out.println("Enter a declaration id: ");
                         declarationId = scanner.nextLine().trim();
+                        // to show the user that the declaration id cannot be blank
+                        if (declarationId.isEmpty()) {
+                            System.out.println("Error: Declaration id cannot be blank.");
+                        }
                     }
-                    boolean duplicateDeclarationId = false;
+                    boolean duplicateDecl = false;
                     for (int i = 0; i < declarationCount; i++) {
                         if (declarations[i].getDeclarationId().equals(declarationId)) {
-                            duplicateDeclarationId = true;
+                            duplicateDecl = true;
                             break;
                         }
                     }
-                    if(duplicateDeclarationId) {
+                    if(duplicateDecl) {
                         System.out.println("Rejection: Duplicate declaration Id.");
                         break;
                     }
@@ -272,25 +282,86 @@ public class Main {
                     // account number
                     String declarationAccountNumber = "";
                     while (declarationAccountNumber.isEmpty()) {
-                        System.out.println("Enter a taypayer Tin for linking");
+                        System.out.println("Enter a tax account number for linking");
                         declarationAccountNumber = scanner.nextLine().trim();
+                        // to show the user that the declaration account number cannot be blank
+                        if (declarationAccountNumber.isEmpty()) {
+                            System.out.println("Error: Declaration account number cannot be blank.");
+                        }
+                    }
+                    // Check if the provided account number exists in the registered tax accounts
+                    boolean accFound = false;
+                    for (int i = 0; i < taxAccountCount; i++) {
+                        if (taxAccounts[i].getAccountNumber().equals(declarationAccountNumber)) {
+                            accFound = true;
+                            break;
+                        }
+                    }
+                    if (!accFound) {
+                        System.out.println("Rejection: Account number not found.");
+                        break;
                     }
 
-                    // amount
+                    // Taxable amount with try-catch
                     double declarationAmount = 0.0;
-                    while (declarationAmount == 0) {
-                        System.out.println("Enter a declaration amount");
-                        declarationAmount = Double.parseDouble(scanner.nextLine().trim());
+                    while (declarationAmount <= 0) {
+                        try {
+                            System.out.print("Enter Taxable Amount: ");
+                            declarationAmount = Double.parseDouble(scanner.nextLine().trim());
+                            if (declarationAmount <= 0) {
+                                System.out.println("Error: Taxable amount must be greater than zero.");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Error: Please enter a valid decimal number.");
+                        }
                     }
 
-                    // tax
-                    double declaredTax = 0.0;
-                    while (declaredTax == 0) {
-                        System.out.println("Enter a tay declaration amount");
-                        declaredTax = Double.parseDouble(scanner.nextLine().trim());
+                    // calculating the decalration tax
+                    System.out.println("Select Tax Type to Calculate:");
+                    System.out.println("1: VAT (18%)");
+                    System.out.println("2: PAYE (15%)");
+                    System.out.println("3: Income Tax (30%)");
+                    System.out.print("Choice: ");
+
+                    String taxChoice = scanner.nextLine().trim();
+
+                    double calculatedTax = 0.0;
+
+                    // Create a Declaration object to call the methods
+                    Declaration taxCalculator = new Declaration(
+                        declarationId,
+                        declarationAccountNumber,
+                        declarationAmount,
+                        0.0
+                    );
+
+                    if (taxChoice.equals("1")) {
+                        // VAT: default rate of 18%
+                        calculatedTax = taxCalculator.calculateTax(declarationAmount);
+
+                    } else if (taxChoice.equals("2")) {
+                        // PAYE: 15%
+                        calculatedTax = taxCalculator.calculateTax(declarationAmount, 0.15);
+
+                    } else if (taxChoice.equals("3")) {
+                        // Income Tax: 30%
+                        calculatedTax = taxCalculator.calculateTax(declarationAmount, 0.30);
+
+                    } else {
+                        System.out.println("Invalid selection. Defaulting to VAT (18%).");
+                        calculatedTax = taxCalculator.calculateTax(declarationAmount);
                     }
-                    
-                    declarations[declarationCount++] = new Declaration(declarationId, declarationAccountNumber, declarationAmount, declaredTax);
+
+                    // Display the calculated tax
+                    System.out.printf(
+                        "Success: Declaration recorded! Stored Tax: %.2f | Truncated Integer Tax Display: %d%n",
+                        calculatedTax,
+                        (int) calculatedTax
+                    );
+
+                    // Store the declaration
+                    declarations[declarationCount++] = new Declaration(declarationId, declarationAccountNumber, declarationAmount, calculatedTax);
+
                     System.out.println("Success: Taxpayer registered.");
                     break;
                 
