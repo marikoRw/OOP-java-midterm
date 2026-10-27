@@ -368,11 +368,21 @@ public class Main {
                 case 4:
                     System.out.println("Registering a payment");
 
+                    // Check if maximum capacity is reached to be safe
+                    if (paymentCount >= payments.length) {
+                        System.out.println("Error: Maximum registrations capacity reached.");
+                        break;
+                    }
+
                     // id
                     String paymentId = "";
                     while (paymentId.isEmpty()) {
                         System.out.println("Enter a payment id: ");
                         paymentId = scanner.nextLine().trim();
+                        // show that he id must not be empty
+                        if (paymentId.isEmpty()) {
+                            System.out.println("Error: Registration id must not be empty");
+                        }
                     }
                     boolean duplicatePaymentId = false;
                     for (int i = 0; i < paymentCount; i++) {
@@ -386,29 +396,79 @@ public class Main {
                         break;
                     }
 
-                    // declaration id
-                    String declarationRefId = "";
-                    while (declarationRefId.isEmpty()) {
-                        System.out.println("Enter a declaration reference id: ");
-                        declarationRefId = scanner.nextLine().trim();
+                    // --- UPDATED: Validate Declaration ID exists ---
+                    System.out.print("Enter Declaration ID: ");
+                    String declarationRefId = scanner.nextLine().trim();
+
+                    Declaration targetDeclaration = null;
+                    for (int i = 0; i < declarationCount; i++) {
+                        if (declarations[i].getDeclarationId().equals(declarationRefId)) {
+                            targetDeclaration = declarations[i];
+                            break;
+                        }
                     }
 
-                    // amount
-                    double paymentAmount = 0.0;
-                    while (paymentAmount == 0) {
-                        System.out.println("Enter a Payment amount");
-                        paymentAmount = Double.parseDouble(scanner.nextLine().trim());
+                    if (targetDeclaration == null) {
+                        System.out.println("Rejection: Declaration ID not found.");
+                        break;
                     }
+
+                    // --- UPDATED: Calculate remaining balance (Section D.ii) ---
+                    double alreadyPaid = 0.0;
+                    for (int i = 0; i < paymentCount; i++) {
+                        if (payments[i].getDeclarationId().equals(declarationRefId)) {
+                            alreadyPaid += payments[i].getAmountPaid();
+                        }
+                    }
+
+                    double remainingBalance = targetDeclaration.getDeclaredTax() - alreadyPaid;
+                    System.out.printf("Total Tax: %.2f | Already Paid: %.2f | Remaining Balance: %.2f\n",
+                            targetDeclaration.getDeclaredTax(), alreadyPaid, remainingBalance);
+
+                    if (remainingBalance <= 0) {
+                        System.out.println("Notice: This declaration is already fully paid.");
+                        break;
+                    }
+
+                    // Validate payment input: > 0 and <= remaining balance
+                    double paymentAmount = 0.0;
+                    while (true) {
+                        try {
+                            System.out.print("Enter Payment Amount: ");
+                            paymentAmount = Double.parseDouble(scanner.nextLine().trim());
+
+                            if (paymentAmount <= 0) {
+                                System.out.println("Error: Payment amount must be greater than zero.");
+                                continue;
+                            }
+                            if (paymentAmount > remainingBalance) {
+                                System.out.printf("Rejection: Overpayment! Amount (%.2f) exceeds balance (%.2f).\n",
+                                        paymentAmount, remainingBalance);
+                                paymentAmount = 0.0;
+                                break;
+                            }
+                            break;
+                        } catch (NumberFormatException e) {
+                            System.out.println("Error: Please enter a valid decimal number for payment.");
+                        }
+                    }
+
+                    if (paymentAmount == 0.0) break;
 
                     // method
                     String paymentMethod = "";
                     while (paymentMethod.isEmpty()) {
-                        System.out.println("Enter a declaration reference id: ");
+                        System.out.println("Enter a payment method: ");
                         paymentMethod = scanner.nextLine().trim();
+                        if (paymentMethod.isEmpty()) {
+                            System.out.println("Error: Payment method must nto be empty");
+                        }
                     }
                     
                     payments[paymentCount++] = new Payment(paymentId, declarationRefId, paymentAmount, paymentMethod);
                     System.out.println("Success: Taxpayer registered.");
+                    double newBalance = remainingBalance - paymentAmount;
+                    System.out.printf("Success: Payment accepted! Updated Remaining Balance: %.2f\n", newBalance);
                     break;
                 
                 case 5:
@@ -423,6 +483,9 @@ public class Main {
                         System.out.println("Email: " + taxPayers[i].getTaxpayerEmail());
                         System.out.println("--------------------------------");
                     }
+                    if (taxpayerCount == 0) {
+                        System.out.println("There are no tax payers");
+                    }
 
                     System.out.println("\n--- TAX ACCOUNTS ---");
                     for (int i = 0; i < taxAccountCount; i++) {
@@ -431,6 +494,9 @@ public class Main {
                         System.out.println("Type: " + taxAccounts[i].getTaxType());
                         System.out.println("Status: " + taxAccounts[i].getAccountStatus());
                         System.out.println("--------------------------------");
+                    }
+                    if (taxAccountCount == 0) {
+                        System.out.println("There are no tax accounts");
                     }
 
                     System.out.println("\n--- DECLARATIONS ---");
@@ -441,6 +507,9 @@ public class Main {
                         System.out.println("Tax: " + declarations[i].getDeclaredTax());
                         System.out.println("--------------------------------");
                     }
+                    if (declarationCount == 0) {
+                        System.out.println("There are no tax declarations");
+                    }
 
                     System.out.println("\n--- PAYMENTS ---");
                     for (int i = 0; i < paymentCount; i++) {
@@ -449,6 +518,9 @@ public class Main {
                         System.out.println("Amount: " + payments[i].getAmountPaid());
                         System.out.println("Method: " + payments[i].getPaymentMethod());
                         System.out.println("--------------------------------");
+                    }
+                    if (paymentCount == 0) {
+                        System.out.println("There are no tax payments");
                     }
 
                     break;
