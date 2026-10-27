@@ -159,15 +159,25 @@ public class Main {
                 case 2:
                     System.out.println("Registering a tax account");
 
+                    // Check if maximum capacity is reached to be safe
+                    if (taxAccountCount >= taxAccounts.length) {
+                        System.out.println("Error: Maximum tax account capacity reached.");
+                        break;
+                    }
+
                     // number
                     String taxAccountNumber = "";
                     while (taxAccountNumber.isEmpty()) {
                         System.out.println("Enter a taxAccount Number");
                         taxAccountNumber = scanner.nextLine().trim();
+                        // to show the user that the tax account number cannot be blank
+                        if (taxAccountNumber.isEmpty()) {
+                            System.out.println("Error: TaxAccount number cannot be blank.");
+                        }
                     }
                     boolean duplicateNumber = false;
                     for (int i = 0; i < taxAccountCount; i++) {
-                        if (taxAccounts[i].getTaxpayerTin().equals(taxAccountNumber)) {
+                        if (taxAccounts[i].getAccountNumber().equals(taxAccountNumber)) {
                             duplicateNumber = true;
                             break;
                         }
@@ -182,6 +192,34 @@ public class Main {
                     while (taxAccountRefTin.isEmpty()) {
                         System.out.println("Enter a tayAccount Tin for linking");
                         taxAccountRefTin = scanner.nextLine().trim();
+                        // to show the user that the tax account ref tin cannot be blank
+                        if (taxAccountRefTin.isEmpty()) {
+                            System.out.println("Error: TaxAccount ref tin cannot be blank.");
+                        }
+                    }
+                    // Check if the provided TIN exists in the registered taxpayers
+                    boolean tinExists = false;
+                    for (int i = 0; i < taxpayerCount; i++) {
+                        if (taxPayers[i].getTaxpayerTin().equals(taxAccountRefTin)) {
+                            tinExists = true;
+                            break;
+                        }
+                    }
+                    if (!tinExists) {
+                        System.out.println("Error: TaxAccount ref tin does not exist.");
+                        break;
+                    }
+                    // only one account per taxpayer rule check
+                    boolean accountExists = false;
+                    for (int i = 0; i < taxAccountCount; i++) {
+                        if (taxAccounts[i].getTaxpayerTin().equals(taxAccountRefTin)) {
+                            accountExists = true;
+                            break;
+                        }
+                    }
+                    if (accountExists) {
+                        System.out.println("Error: Only one tax account per taxpayer is allowed.");
+                        break;
                     }
 
                     // type
@@ -189,6 +227,10 @@ public class Main {
                     while (taxAccountType.isEmpty()) {
                         System.out.println("Enter a tayAccount Account Type");
                         taxAccountType = scanner.nextLine().trim();
+                        // ` to show the user that the tax account type cannot be blank
+                        if (taxAccountType.isEmpty()) {
+                            System.out.println("Error: TaxAccount type cannot be blank.");
+                        }
                     }
 
                     // status
@@ -196,6 +238,10 @@ public class Main {
                     while (taxAccountStatus.isEmpty()) {
                         System.out.println("Enter a tayAccount Account Status");
                         taxAccountStatus = scanner.nextLine().trim();
+                        // to show the user that the tax account status cannot be blank
+                        if (taxAccountStatus.isEmpty()) {
+                            System.out.println("Error: TaxAccount status cannot be blank.");
+                        }
                     }
                     
                     taxAccounts[taxAccountCount++] = new TaxAccount(taxAccountNumber, taxAccountRefTin, taxAccountType, taxAccountStatus);
